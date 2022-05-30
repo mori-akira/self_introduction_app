@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="jp.co.molygray.self_introduction_app.mapper.ListContentMapper">
+  	<select id="select" resultMap="listContentResult">
+  		SELECT
+  			lc.content_id,
+  			lc.item_id,
+  			lc.item_name,
+  			lci.item_children_id,
+  			lci.item_value
+		FROM self_introduction.list_content lc
+			LEFT OUTER JOIN self_introduction.list_content_item lci
+				ON lc.content_id = lci.content_id
+				AND lc.item_id = lci.item_id
+		WHERE lc.content_id = #{contentId}
+		ORDER BY lc.item_id, lci.item_children_id
+  	</select>
+
+  	<resultMap type="jp.co.molygray.self_introduction_app.entity.ListContent" id="listContentResult">
+		<id column="content_id" property="contentId" />
+		<id column="item_id" property="itemId" />
+		<result column="item_name" property="itemName" />
+		<collection property="itemList" ofType="jp.co.molygray.self_introduction_app.entity.ListContentItem">
+			<result column="item_children_id" property="itemChildrenId" />
+			<result column="item_value" property="itemValue" />
+		</collection>
+  	</resultMap>
+  </mapper>

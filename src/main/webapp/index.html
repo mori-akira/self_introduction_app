@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang='ja' dir='ltr'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta http-equiv='Content-Type' content='text/html;charset=UTF-8'>
+    <meta name="author" content="Moriak Kogure">
+    <style type="text/css">
+        body {
+            width: 100%;
+        }
+
+        .content_box {
+            width: 65%;
+            margin-left: 8%;
+            margin-top: 64px;
+            margin-bottom: 32px;
+            padding: 3% 5%;
+            border-radius: 12px;
+            border-style: solid;
+            border-width: 2px;
+        }
+
+        .content_box>h1 {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 48px;
+            font-style: italic;
+            text-align: center;
+            text-shadow: 2px 2px 2px #111,
+                2px -2px 2px #111,
+                -2px 2px 2px #111,
+                -2px -2px 2px #111,
+                2px 0px 2px #111,
+                0px 2px 2px #111,
+                -2px 0px 2px #111,
+                0px -2px 2px #111;
+        }
+
+        .content_box>.contents_wrapper {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .content_box>.contents_wrapper>.items_box,
+        .content_box>.contents_wrapper>.list_items_box {
+            width: 65%;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .content_box>.contents_wrapper>.items_box>* {
+            width: 100%;
+        }
+
+        .content_box>.contents_wrapper>.list_items_box>div {
+            margin-top: 8px;
+        }
+
+        .content_box>.contents_wrapper>.list_items_box>div:nth-child(odd) {
+            width: 30%;
+            font-weight: bold;
+        }
+
+        .content_box>.contents_wrapper>.list_items_box>div:nth-child(odd)::before {
+            content: "◆ ";
+        }
+
+        .content_box>.contents_wrapper>.list_items_box>div:nth-child(even) {
+            width: 70%;
+            font-weight: bold;
+        }
+
+        .content_box>.contents_wrapper>.figures_box {
+            width: 35%;
+        }
+
+        .content_box>.contents_wrapper>.figures_box img {
+            max-width: 100%;
+        }
+
+        .button_area {
+            margin-top: 32px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-evenly;
+        }
+
+        .button_area>a {
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="webjars/jquery/3.6.0/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+        $(function () {
+            let profileId = getParam('profileId');
+            authorize(profileId);
+        });
+
+        function getParam(name) {
+            query = location.search;
+            if (!query) {
+                return null;
+            }
+            query = query.replace(/^\?/, '');
+            query = query.split('&');
+            for (let q of query) {
+                let tmp = q.split('=');
+                if (tmp[0] === name) {
+                    return tmp[1];
+                }
+            }
+            return null;
+        }
+
+        function authorize(profileId) {
+            $.ajax({
+                type: 'GET',
+                url: `webapi/authorize?profileId=${profileId}`
+            }).done(function () {
+                console.log('authorized');
+                getProfileContentList(profileId);
+            }).fail(function () {
+                alert('プロフィールが存在しません。');
+            });
+        }
+
+        function getProfileContentList(profileId) {
+            $.ajax({
+                type: 'GET',
+                url: `webapi/profileContentList?profileId=${profileId}`,
+                dataType: 'json'
+            }).done(function (response) {
+                console.log(response);
+                for (let content of response) {
+                    let contentDiv = $('<div></div>', {
+                        'class': 'content_box',
+                        id: `content-${content.contentId}`
+                    });
+                    $('body').append(contentDiv);
+                    contentDiv.append($('<h1></h1>'));
+                    contentDiv.children('h1').html(content.contentName);
+                    getContent(content.contentId, content.contentType, content.contentImagePath);
+                }
+            }).fail(function () {
+                alert('プロフィールコンテンツの取得に失敗しました。');
+            })
+        }
+
+        function getContent(contentId, contentType, contentImagePath) {
+            $.ajax({
+                type: 'GET',
+                url: `webapi/profileContent?contentId=${contentId}`,
+                dataType: 'json'
+            }).done(function (response) {
+                console.log(response);
+                let contentsWrapper = $('<div></div>', { 'class': 'contents_wrapper' });
+
+                if (contentType === '1') {
+                    let listItemsBox = $('<div></div>', { 'class': 'list_items_box' });
+                    for (let content of response) {
+                        let div = $('<div></div>');
+                        div.html(content.itemName);
+                        listItemsBox.append(div);
+                        div = $('<div></div>');
+                        div.html(content.itemValue);
+                        listItemsBox.append(div);
+                    }
+                    contentsWrapper.append(listItemsBox);
+                } else if (contentType === '2') {
+                    let itemsBox = $('<div></div>', { 'class': 'items_box' });
+                    let ul1 = $('<ul></ul>');
+                    for (let item of response) {
+                        let li1 = $('<li></li>');
+                        let b = $('<b></b>');
+                        b.html(item.itemName);
+                        let ul2 = $('<ul></ul>')
+                        li1.append(b);
+                        for (let child of item.itemList) {
+                            li2 = $('<li></li>');
+                            li2.html(child.itemValue);
+                            ul2.append(li2);
+                        }
+                        li1.append(ul2);
+                        ul1.append(li1);
+                    }
+                    itemsBox.append(ul1);
+                    contentsWrapper.append(itemsBox);
+                } else if (contentType === '3') {
+                    let itemsBox = $('<div></div>', { 'class': 'items_box' });
+                    let p = $('<p></p>');
+                    p.html(response.content);
+                    itemsBox.append(p);
+                    contentsWrapper.append(itemsBox);
+                }
+
+                if (contentImagePath) {
+                    let figuresBox = $('<div></div>', { 'class': 'figures_box' });
+                    let figure = $('<figure></figure>');
+                    let img = $('<img></img>', { src: contentImagePath, alt: `imageOfContent#${contentId}` });
+                    figure.append(img);
+                    figuresBox.append(figure);
+                    contentsWrapper.append(figuresBox);
+                }
+
+                $(`div#content-${contentId}`).append(contentsWrapper);
+
+                let buttonArea = $('<div></div>', { 'class': 'button_area' });
+                let a1 = $('<a></a>');
+                a1.html('PREV');
+                let a2 = $('<a></a>');
+                a2.html('NEXT');
+                buttonArea.append(a1);
+                buttonArea.append(a2);
+                $(`div#content-${contentId}`).append(buttonArea);
+            }).fail(function () {
+                alert('プロフィールコンテンツの取得に失敗しました。');
+            });
+        }
+
+        const colorList = ['#f22', '#2f2', '#22f', '#ff2', '#f2f', '#2ff'];
+        const lightColorList = ['#fee', '#efe', '#eef', '#ffe', '#fef', '#eff'];
+
+        $(document).ajaxStop(function () {
+            let contents = $('.content_box');
+            let i = 0;
+            for (let cnt of contents) {
+                $(cnt).attr('id', `content#${i}`);
+                $(cnt).css('border-color', colorList[i % colorList.length]);
+                $(cnt).css('background-color', lightColorList[i % lightColorList.length]);
+                $(cnt).children('h1').css('color', colorList[i % colorList.length])
+                $(cnt).children('.button_area').children('a').eq(0).attr('href', `#content#${i - 1}`);
+                $(cnt).children('.button_area').children('a').eq(1).attr('href', `#content#${i + 1}`);
+                i++;
+            }
+            contents.first().find('.button_area').children('a').eq(0).hide();
+            contents.last().find('.button_area').children('a').eq(1).hide();
+        });
+    </script>
+</body>

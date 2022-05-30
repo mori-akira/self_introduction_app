@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="jp.co.molygray.self_introduction_app.mapper.BasicContentMapper">
+  	<select id="select" resultType="jp.co.molygray.self_introduction_app.entity.BasicContent">
+  		SELECT *
+		FROM self_introduction.basic_content
+		WHERE content_id = #{contentId}
+		ORDER BY item_id
+  	</select>
+  </mapper>

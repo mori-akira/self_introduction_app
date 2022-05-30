@@ -1,0 +1,27 @@
+version: '3.0'
+
+services:
+#  db:
+#    container_name: db
+#    build: db
+#    environment:
+#      MYSQL_ROOT_PASSWORD: admin
+#      MYSQL_DATABASE: self-introduction
+#      MYSQL_USER: self-introduction
+#      MYSQL_PASSWORD: password
+#    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+#    volumes:
+#     - db\data:/var/lib/mysql
+#     - db\my.cnf:/etc/mysql/conf.d/my.cnf
+#     - db\init-sql:/docker-entrypoint-initdb.d
+#    ports:
+#     - "3307:3306"
+#
+  self-introduction:
+    container_name: self-introduction
+    build: self-introduction
+    extra_hosts:
+     - "localhost:192.168.0.1"
+    ports:
+     - "8088:8080"
+    
